@@ -75,15 +75,6 @@ def me():
 	me = microsoft.get('me')
 	return render_template('me.html', me=str(me.data))
 
-	
-
-# If library is having trouble with refresh, uncomment below and implement refresh handler
-# see https://github.com/lepture/flask-oauthlib/issues/160 for instructions on how to do this
-
-# Implements refresh token logic
-# @app.route('/refresh', methods=['POST'])
-# def refresh():
-
 @microsoft.tokengetter
 def get_microsoft_oauth_token():
 	return session.get('microsoft_token')
