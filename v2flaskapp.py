@@ -12,12 +12,14 @@ app.debug = True
 app.secret_key = 'development'
 oauth = OAuth(app)
 
+consumer_key = 'Register your app at apps.dev.microsoft.com'
+consumer_secret = 'Register your app at apps.dev.microsoft.com'
 # Put your consumer key and consumer secret into a config file
 # and don't check it into github!!
 microsoft = oauth.remote_app(
 	'microsoft',
-	consumer_key='Register your app at apps.dev.microsoft.com',
-	consumer_secret='Register your app at apps.dev.microsoft.com',
+	consumer_key=consumer_key,
+	consumer_secret=consumer_secret,
 	request_token_params={'scope': 'offline_access User.Read'},
 	base_url='https://graph.microsoft.com/v1.0/',
 	request_token_url=None,
@@ -26,6 +28,7 @@ microsoft = oauth.remote_app(
 	authorize_url='https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
 )
 
+refresh_token = None
 
 @app.route('/')
 def index():
@@ -50,10 +53,12 @@ def logout():
 	return redirect(url_for('index'))
 
 def store_credentials(response):
+	global refresh_token
 	print("Response: " + str(response))
 	# Okay to store this in a local variable, encrypt if it's going to client
 	# machine or database. Treat as a password.
 	session['microsoft_token'] = (response['access_token'], '')
+	refresh_token = response['refresh_token']
 
 	return redirect(url_for('me'))
 
@@ -72,9 +77,20 @@ def authorized():
 
 	return store_credentials(response)
 
+def refresh():
+	print("Refreshing")
+	data = {'grant_type': 'refresh_token', 'refresh_token': refresh_token, 'client_id': consumer_key,
+			'client_secret': consumer_secret}
+	response = microsoft.post(microsoft.access_token_url, data=data)
+	if response is None:
+		return "Refresh failed"
+	return store_credentials(response.data)
+
 @app.route('/me')
 def me():
 	me = microsoft.get('me')
+	if 'error' in me.data.keys() and me.data['error']['code'] == 'InvalidAuthenticationToken':
+		return refresh()
 	return render_template('me.html', me=str(me.data))
 
 @microsoft.tokengetter
