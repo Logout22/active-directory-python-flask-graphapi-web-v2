@@ -16,7 +16,7 @@ This sample demonstrates how to use Azure AD with a 3rd party Python-Flask libra
 ## Steps to Run
 1. Install Flask using pip if you don't already have it.  If you do, make sure to update Flask.     
     ```
-    sudo pip install Flask
+    sudo pip install Flask Flask-OAuthlib
     ```
 
 2. Register your Azure AD v2.0 app.  
