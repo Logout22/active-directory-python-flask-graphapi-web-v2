@@ -54,8 +54,7 @@ def authorized():
 	response = microsoft.authorized_response()
 
 	if response is None:
-		return "Access Denied: Reason=%s\nError=%s" % (
-			response.get('error'), 
+		return "Access Denied: Error=%s" % (
 			request.get('error_description')
 		)
 		
