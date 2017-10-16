@@ -49,6 +49,14 @@ def logout():
 	session.pop('state', None)
 	return redirect(url_for('index'))
 
+def store_credentials(response):
+	print("Response: " + str(response))
+	# Okay to store this in a local variable, encrypt if it's going to client
+	# machine or database. Treat as a password.
+	session['microsoft_token'] = (response['access_token'], '')
+
+	return redirect(url_for('me'))
+
 @app.route('/login/authorized')
 def authorized():
 	response = microsoft.authorized_response()
@@ -59,15 +67,10 @@ def authorized():
 		)
 		
 	# Check response for state
-	print("Response: " + str(response))
 	if str(session['state']) != str(request.args['state']):
 		raise Exception('State has been messed with, end authentication')
-		
-	# Okay to store this in a local variable, encrypt if it's going to client
-	# machine or database. Treat as a password. 
-	session['microsoft_token'] = (response['access_token'], '')
 
-	return redirect(url_for('me')) 
+	return store_credentials(response)
 
 @app.route('/me')
 def me():
